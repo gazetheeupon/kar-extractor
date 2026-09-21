@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free Karaoke (.kar) Lyrics Extractor — Read MIDI Karaoke Lyrics</title>
+<meta name="description" content="Open a .kar or .mid karaoke MIDI file and read its lyrics, with correct timing, entirely in your browser. Preview lyrics scrolling in sync, export to .lrc or .txt, or export a lyrics-stripped .mid. Nothing uploaded.">
+<link rel="stylesheet" href="https://gazetheeupon.github.io/shared-assets/theme.css?v=2">
+<link rel="canonical" href="https://gazetheeupon.github.io/kar-extractor/">
+<meta property="og:title" content="Free Karaoke (.kar) Lyrics Extractor">
+<meta property="og:description" content="Read the lyrics out of a .kar / MIDI karaoke file, with correct timing, entirely in your browser. Preview, export .lrc/.txt, or strip lyrics from the MIDI.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://gazetheeupon.github.io/kar-extractor/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Free Karaoke (.kar) Lyrics Extractor">
+<meta name="twitter:description" content="Read the lyrics out of a .kar / MIDI karaoke file, with correct timing, entirely in your browser. Preview, export .lrc/.txt, or strip lyrics from the MIDI.">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Free Karaoke (.kar) Lyrics Extractor",
+  "url": "https://gazetheeupon.github.io/kar-extractor/",
+  "description": "Open a .kar or .mid karaoke MIDI file and read its lyrics, with correct timing, entirely in your browser. Preview lyrics in sync, export to .lrc or .txt, or export a lyrics-stripped .mid.",
+  "applicationCategory": "MultimediaApplication",
+  "operatingSystem": "Any (runs in web browser)",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+<style>
+  :root{--bg:#0f1720;--card:#1a2532;--text:#e8edf2;--muted:#93a3b3;--accent:#4fa8ff;--border:#2a3745;}
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;}
+  header{padding:2rem 1rem 1rem;text-align:center;}
+  h1{font-size:1.6rem;margin:0 0 .4rem;}
+  p.sub{color:var(--muted);margin:0 auto;max-width:660px;}
+  main{max-width:820px;margin:0 auto;padding:1.5rem 1rem 3rem;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.2rem;}
+  .dropzone{border:2px dashed var(--border);border-radius:10px;padding:2.2rem 1rem;text-align:center;cursor:pointer;transition:border-color .15s;}
+  .dropzone.drag{border-color:var(--accent);}
+  .dropzone input{display:none;}
+  .dropzone .hint{color:var(--muted);font-size:.9rem;margin-top:.4rem;}
+  .fname{font-size:.9rem;color:var(--text);margin-top:.6rem;word-break:break-all;}
+  #status{color:var(--muted);font-size:.9rem;margin-top:.8rem;min-height:1.2em;white-space:pre-line;}
+  #status.error{color:#ff8080;}
+  h2{font-size:1rem;margin:0 0 .8rem;color:var(--text);}
+  table.kv{width:100%;border-collapse:collapse;font-size:.85rem;}
+  table.kv td{padding:.35rem .5rem;border-bottom:1px solid var(--border);vertical-align:top;}
+  table.kv td:first-child{color:var(--muted);width:38%;white-space:nowrap;}
+  #warningsList{margin:.4rem 0 0;padding-left:1.2rem;color:#ffcf8a;font-size:.85rem;}
+  .playbar{display:flex;align-items:center;gap:.8rem;margin-bottom:.8rem;}
+  button.act{background:transparent;border:1px solid var(--accent);color:var(--accent);border-radius:8px;padding:.55rem 1.1rem;font-size:.88rem;font-weight:600;cursor:pointer;}
+  button.act:hover{background:rgba(79,168,255,.1);}
+  #elapsedTime{color:var(--muted);font-size:.9rem;font-variant-numeric:tabular-nums;}
+  #linesList{max-height:360px;overflow:auto;border:1px solid var(--border);border-radius:8px;padding:.4rem 0;}
+  .line{padding:.5rem 1rem;display:flex;gap:.8rem;color:var(--muted);font-size:.95rem;transition:color .15s,background .15s;}
+  .line-time{color:#5a6b7a;font-size:.78rem;font-variant-numeric:tabular-nums;flex:none;padding-top:.15rem;}
+  .line.newpage{border-top:1px dashed var(--border);margin-top:.3rem;padding-top:.8rem;}
+  .line.current{color:var(--text);background:rgba(79,168,255,.12);font-weight:600;}
+  .line.past{color:#5a6b7a;}
+  #exportRow{display:flex;gap:.6rem;flex-wrap:wrap;}
+  .privacy{font-size:.85rem;color:var(--muted);}
+  .privacy strong{color:var(--text);}
+</style>
+</head>
+<body>
+<header>
+  <h1>Karaoke (.kar) Lyrics Extractor</h1>
+  <p class="sub">Drop in a <code>.kar</code> or <code>.mid</code> karaoke MIDI file to read its lyrics, correctly timed, preview them scrolling in sync, and export to <code>.lrc</code>, <code>.txt</code>, or a lyrics-stripped <code>.mid</code>.</p>
+</header>
+<main>
+  <div class="card">
+    <div class="dropzone" id="dropzone">
+      <div>Drop a .kar or .mid file here, or click to choose</div>
+      <div class="hint">A karaoke MIDI file (Standard MIDI File with embedded lyrics)</div>
+      <input type="file" id="fileInput" accept=".kar,.mid,.midi">
+    </div>
+    <div class="fname" id="fname"></div>
+    <div id="status"></div>
+  </div>
+
+  <div class="card" id="overviewCard" style="display:none;">
+    <h2>File overview</h2>
+    <div id="overviewBody"></div>
+  </div>
+
+  <div class="card" id="metadataCard" style="display:none;">
+    <h2>Metadata</h2>
+    <div id="metadataBody"></div>
+  </div>
+
+  <div class="card" id="previewCard" style="display:none;">
+    <h2>Lyric preview</h2>
+    <div class="playbar">
+      <button class="act" id="playBtn">Play preview</button>
+      <button class="act" id="resetBtn">Reset</button>
+      <span id="elapsedTime">00:00.00</span>
+    </div>
+    <p class="privacy" style="margin-bottom:.8rem;">This is a silent, timer-based preview: lines highlight at the moment they'd be sung, based on the file's own tempo. It does not play the music &mdash; no browser has a built-in MIDI synthesizer.</p>
+    <div id="linesList"></div>
+  </div>
+
+  <div class="card" id="exportCard" style="display:none;">
+    <h2>Export</h2>
+    <div id="exportRow">
+      <button class="act" id="exportLrcBtn">Export lyrics (.lrc)</button>
+      <button class="act" id="exportTxtBtn">Export lyrics (.txt)</button>
+      <button class="act" id="exportCleanMidiBtn">Export MIDI with lyrics removed</button>
+    </div>
+  </div>
+
+  <div class="card" id="warningsCard" style="display:none;">
+    <h2>Notes</h2>
+    <ul id="warningsList"></ul>
+  </div>
+
+  <div class="card">
+    <p class="privacy"><strong>How this works:</strong> a <code>.kar</code> file is an ordinary Standard MIDI File. This page reads the raw MIDI data directly in your browser tab &mdash; parsing tracks, tempo changes, and the lyric text events &mdash; and never uploads the file anywhere.</p>
+    <p class="privacy" style="margin-top:.6rem;"><strong>Two lyric conventions:</strong> modern files use a dedicated "Lyric" meta-event per syllable. Older "Soft Karaoke" files (the ones that gave <code>.kar</code> its name) instead store lyrics as generic text events, using a leading <code>/</code> to mark a new line and <code>\</code> to mark a new line and a new page. This page reads both.</p>
+  </div>
+
+  <div class="card faq">
+    <h2>Troubleshooting</h2>
+    <details><summary>My file won't open at all</summary>
+      <p>A <code>.kar</code>/<code>.mid</code> file starts with an "MThd" header chunk. If this page can't find that, the file isn't a Standard MIDI File, or it's corrupted &mdash; try re-downloading it.</p>
+    </details>
+    <details><summary>It opened, but there are no lyrics</summary>
+      <p>Not every <code>.mid</code> file has embedded lyrics &mdash; plenty are purely instrumental. This page reports how many lyric/text events it found; zero means the file itself doesn't contain any.</p>
+    </details>
+    <details><summary>Can I hear the song play here?</summary>
+      <p>No &mdash; this page only reads the lyric text and its timing, it doesn't synthesize audio. The preview highlights lines at the correct moments using a timer, silently. To hear the song, open the file in a MIDI player or karaoke player.</p>
+    </details>
+  </div>
+
+  <div id="ad-slot"></div>
+</main>
+<script src="kar-parser.js"></script>
+<script src="app.js"></script>
+<script defer src="https://gazetheeupon.github.io/shared-assets/site.js"></script>
+</body>
+</html>
