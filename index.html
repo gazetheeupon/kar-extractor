@@ -61,6 +61,38 @@
   .privacy{font-size:.85rem;color:var(--muted);}
   .privacy strong{color:var(--text);}
 </style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "My file won't open at all",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A .kar / .mid file starts with an \"MThd\" header chunk. If this page can't find that, the file isn't a Standard MIDI File, or it's corrupted \u2014 try re-downloading it."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "It opened, but there are no lyrics",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Not every .mid file has embedded lyrics \u2014 plenty are purely instrumental. This page reports how many lyric/text events it found; zero means the file itself doesn't contain any."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I hear the song play here?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No \u2014 this page only reads the lyric text and its timing, it doesn't synthesize audio. The preview highlights lines at the correct moments using a timer, silently. To hear the song, open the file in a MIDI player or karaoke player."
+      }
+    }
+  ]
+}
+</script>
 </head>
 <body>
 <header>
